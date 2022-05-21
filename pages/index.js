@@ -2,7 +2,7 @@ import React from "react";
 import Webcam from "react-webcam";
 import cv from "@techstark/opencv-js";
 
-export default function index() {
+export default function Home(){
   const webcamRef = React.useRef(null);
   let prevRef = React.useRef(null);
   let greyImgRef = React.useRef(null);
@@ -59,7 +59,7 @@ export default function index() {
       // couting number of non zeros
      let nb= cv.countNonZero(diff)
       let avg = (nb * 100.0) / (300 * 300);
-      if (avg >= 20) {
+      if (avg >= 30) {
         console.log("Something is moving 66!"+String(avg));
       }
       prevRef.current.src = imageSrc;
