@@ -1,67 +1,94 @@
-import React, { useEffect,useState, useRef } from "react";
-import * as tf from "@tensorflow/tfjs";
-import * as handpose from "@tensorflow-models/handpose";
+import React from "react";
 import Webcam from "react-webcam";
-export default function Home() {
-  const webcamRef = useRef(null);
-  const [data,setData]=useState(55)
-  const runHandpose = async () => {
-    const net = await handpose.load();
-    console.log("Handpose model loaded.");
-    //  Loop and detect hands
-    setInterval(() => {
-      detect(net);
-    }, 100);
-  };
-  const detect = async (net) => {
-    // Check data is available
-    if (
-      typeof webcamRef.current !== "undefined" &&
-      webcamRef.current !== null &&
-      webcamRef.current.video.readyState === 4
-    ) {
-      // Get Video Properties
-      const video = webcamRef.current.video;
-      const videoWidth = webcamRef.current.video.videoWidth;
-      const videoHeight = webcamRef.current.video.videoHeight;
+import cv from "@techstark/opencv-js";
 
-      // Set video width
-      webcamRef.current.video.width = videoWidth;
-      webcamRef.current.video.height = videoHeight;
+export default function index() {
+  const webcamRef = React.useRef(null);
+  let prevRef = React.useRef(null);
+  let greyImgRef = React.useRef(null);
+  let imgRef = React.useRef(null);
+  // console.log(prevRef);
+  if (prevRef.current == null) {
+    console.log("true");
+  }
+  let grayImgRef = React.useRef(null);
+  const detectFace = async () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) return;
+    if(prevRef.current.src===null || prevRef.current.src==="" || prevRef.current.src===undefined){
+      prevRef.current.src = imageSrc;
+    // console.log(prevRef)
 
-      
-
-      // Make Detections
-      const hand = await net.estimateHands(video);
-
-      // Draw mesh
-      if (hand.length > 0) {
-        console.log(hand);
-        setData(data+1)
-
-      }
     }
+    // console.log(prevRef.current.src)
+
+    imgRef.current.src = imageSrc;
+    // console.log(imgRef)
+    imgRef.current.onload = () => {
+      // read new frame
+      const img = cv.imread(imgRef.current);
+      const imgGray = new cv.Mat();
+      cv.cvtColor(img, imgGray, cv.COLOR_BGR2GRAY);
+      cv.imshow(grayImgRef.current, imgGray);
+      // read old frame
+      const imgPrev = cv.imread(prevRef.current);
+      const imgGrayPrev = new cv.Mat();
+      cv.cvtColor(imgPrev, imgGrayPrev, cv.COLOR_BGR2GRAY);
+      cv.imshow(greyImgRef.current, imgGrayPrev);
+      let ksize = new cv.Size(5,  5);
+      // gaussian blur new
+      cv.GaussianBlur(imgGray, imgGray, ksize, 0, 0, cv.BORDER_DEFAULT);
+      cv.imshow(grayImgRef.current, imgGray);
+      // gaussian blur prev
+      cv.GaussianBlur(imgGrayPrev, imgGrayPrev, ksize, 0, 0, cv.BORDER_DEFAULT);
+      cv.imshow(greyImgRef.current, imgGrayPrev);
+      // absdiff
+      let diff = new cv.Mat();
+      cv.absdiff(imgGrayPrev, imgGray, diff);
+      let M = cv.Mat.ones(7, 7, cv.CV_8U);
+      let anchor = new cv.Point(-1, -1);
+      cv.morphologyEx(diff, diff, cv.MORPH_OPEN, M, anchor, 1,
+        cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+      // // close
+      cv.morphologyEx(diff, diff, cv.MORPH_CLOSE, M, anchor, 1,
+        cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());      // threshold
+      cv.threshold(diff, diff, 10, 255,cv.THRESH_BINARY);
+      // open
+      
+      cv.imshow(greyImgRef.current, diff);
+      // couting number of non zeros
+     let nb= cv.countNonZero(diff)
+      let avg = (nb * 100.0) / (300 * 300);
+      if (avg >= 20) {
+        console.log("Something is moving 66!"+String(avg));
+      }
+      prevRef.current.src = imageSrc;
+    };
+ 
   };
-  runHandpose();
+  React.useEffect(() => {
+    setInterval(detectFace, 100);
+  });
+
   return (
-    <>
-    {data}
+    <div className="App">
+      <h2>Real-time Face Detection</h2>
       <Webcam
         ref={webcamRef}
-        style={{
-          position: "absolute",
-          marginLeft: "auto",
-          marginRight: "auto",
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          zindex: 9,
-          width: 320,
-          height: 320,
+        className="webcam"
+        mirrored
+        videoConstraints={{
+          width: 300,
+          height: 300,
+          facingMode: "user"
         }}
+        screenshotFormat="image/jpeg"
       />
-
-      
-    </>
+      <img className="inputImage" alt="input" ref={imgRef} />
+      {/* <img className="inputImage" alt="inputh" ref={prevRef} /> */}
+      <canvas ref={grayImgRef} />
+      <canvas ref={greyImgRef} />
+      <img id="name" ref={prevRef} alt="h" />
+    </div>
   );
 }
