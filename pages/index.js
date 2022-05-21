@@ -89,7 +89,7 @@ export default function Home(){
       {/* <canvas ref={grayImgRef} /> */}
       {/* <canvas ref={greyImgRef} /> */}
       <img id="name" ref={prevRef} alt="h" style={{visibility: "hidden"}} /> 
-      {
+      
     </div>
   );
 }
