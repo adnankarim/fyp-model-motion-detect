@@ -15,10 +15,7 @@
     "react-dom": "18.1.0",
     "react-webcam": "^7.0.1"
   },
-  "browser": {
-    "fs": false
-   
-  },
+
   "devDependencies": {
     "eslint": "8.15.0",
     "eslint-config-next": "12.1.6"

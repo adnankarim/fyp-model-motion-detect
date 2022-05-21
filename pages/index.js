@@ -3,15 +3,15 @@ import Webcam from "react-webcam";
 import cv from "@techstark/opencv-js";
 
 export default function Home(){
+  const [motion,setMotion] = React.useState(0);
   const webcamRef = React.useRef(null);
   let prevRef = React.useRef(null);
-  let greyImgRef = React.useRef(null);
   let imgRef = React.useRef(null);
+
   // console.log(prevRef);
   if (prevRef.current == null) {
     console.log("true");
   }
-  let grayImgRef = React.useRef(null);
   const detectFace = async () => {
     const imageSrc = webcamRef.current.getScreenshot();
     if (!imageSrc) return;
@@ -29,19 +29,15 @@ export default function Home(){
       const img = cv.imread(imgRef.current);
       const imgGray = new cv.Mat();
       cv.cvtColor(img, imgGray, cv.COLOR_BGR2GRAY);
-      cv.imshow(grayImgRef.current, imgGray);
       // read old frame
       const imgPrev = cv.imread(prevRef.current);
       const imgGrayPrev = new cv.Mat();
       cv.cvtColor(imgPrev, imgGrayPrev, cv.COLOR_BGR2GRAY);
-      cv.imshow(greyImgRef.current, imgGrayPrev);
       let ksize = new cv.Size(5,  5);
       // gaussian blur new
       cv.GaussianBlur(imgGray, imgGray, ksize, 0, 0, cv.BORDER_DEFAULT);
-      cv.imshow(grayImgRef.current, imgGray);
       // gaussian blur prev
       cv.GaussianBlur(imgGrayPrev, imgGrayPrev, ksize, 0, 0, cv.BORDER_DEFAULT);
-      cv.imshow(greyImgRef.current, imgGrayPrev);
       // absdiff
       let diff = new cv.Mat();
       cv.absdiff(imgGrayPrev, imgGray, diff);
@@ -55,12 +51,12 @@ export default function Home(){
       cv.threshold(diff, diff, 10, 255,cv.THRESH_BINARY);
       // open
       
-      cv.imshow(greyImgRef.current, diff);
       // couting number of non zeros
      let nb= cv.countNonZero(diff)
       let avg = (nb * 100.0) / (300 * 300);
-      if (avg >= 30) {
-        console.log("Something is moving 66!"+String(avg));
+      if (avg >= 24) {
+  
+        setMotion("Something is moving 66!"+String(avg))
       }
       prevRef.current.src = imageSrc;
     };
@@ -83,12 +79,15 @@ export default function Home(){
           facingMode: "user"
         }}
         screenshotFormat="image/jpeg"
+        style={{visibility: "hidden"}}
       />
-      <img className="inputImage" alt="input" ref={imgRef} />
+      <img className="inputImage" alt="input" ref={imgRef}  style={{visibility: "hidden"}}/>
       {/* <img className="inputImage" alt="inputh" ref={prevRef} /> */}
-      <canvas ref={grayImgRef} />
-      <canvas ref={greyImgRef} />
-      <img id="name" ref={prevRef} alt="h" />
+      {/* <canvas ref={grayImgRef} /> */}
+      {/* <canvas ref={greyImgRef} /> */}
+      <img id="name" ref={prevRef} alt="h" style={{visibility: "hidden"}} /> 
+      {motion}
     </div>
   );
 }
+
