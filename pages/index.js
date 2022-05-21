@@ -66,8 +66,8 @@ export default function Home(){
  
   };
   React.useEffect(() => {
-    setInterval(detectFace, 500);
-  });
+    setInterval(detectFace, 900);
+  },[]);
 
   return (
     <div className="App">
