@@ -13,7 +13,10 @@ export default function Home(){
     console.log("true");
   }
   const detectFace = async () => {
-    const imageSrc = webcamRef.current.getScreenshot();
+    const imageSrc = webcamRef.current.getScreenshot({
+      width: 300,
+      height: 300,
+    });
     if (!imageSrc) return;
     if(prevRef.current.src===null || prevRef.current.src==="" || prevRef.current.src===undefined){
       prevRef.current.src = imageSrc;
@@ -68,7 +71,7 @@ export default function Home(){
 
   return (
     <div className="App">
-      <h2>Real-time Face Detection</h2>
+      <h2>{motion}</h2>
       <Webcam
         ref={webcamRef}
         className="webcam"
@@ -76,7 +79,7 @@ export default function Home(){
         videoConstraints={{
           width: 300,
           height: 300,
-          facingMode: "user"
+          facingMode: "environment"
         }}
         screenshotFormat="image/jpeg"
         style={{visibility: "hidden"}}
@@ -86,7 +89,7 @@ export default function Home(){
       {/* <canvas ref={grayImgRef} /> */}
       {/* <canvas ref={greyImgRef} /> */}
       <img id="name" ref={prevRef} alt="h" style={{visibility: "hidden"}} /> 
-      {motion}
+      {
     </div>
   );
 }
