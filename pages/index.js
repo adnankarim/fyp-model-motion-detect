@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect,useState, useRef } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as handpose from "@tensorflow-models/handpose";
 import Webcam from "react-webcam";
 export default function Home() {
   const webcamRef = useRef(null);
-
+  const [data,setData]=useState(55)
   const runHandpose = async () => {
     const net = await handpose.load();
     console.log("Handpose model loaded.");
@@ -37,6 +37,7 @@ export default function Home() {
       // Draw mesh
       if (hand.length > 0) {
         console.log(hand);
+        setData(data+1)
 
       }
     }
@@ -44,6 +45,7 @@ export default function Home() {
   runHandpose();
   return (
     <>
+    {data}
       <Webcam
         ref={webcamRef}
         style={{
@@ -54,8 +56,8 @@ export default function Home() {
           right: 0,
           textAlign: "center",
           zindex: 9,
-          width: 640,
-          height: 480,
+          width: 320,
+          height: 320,
         }}
       />
 
